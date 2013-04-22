@@ -19,12 +19,12 @@ type Client struct{
 }
 
 func Add(client *Client) (ret bool){
-//	clientM.Lock()
+	clientM.Lock()
 	if clients[client.name] == nil{
 		clients[client.name] = client
 		ret = true
 	}
-//	clientM.Unlock()
+	clientM.Unlock()
 	return ret
 }
 
@@ -45,7 +45,7 @@ func ConnHandler(conn net.Conn, ch chan string) {
 		return
 	}
 	name := strings.TrimSpace(string(buffer[0:bytesRead]))
-	client := &Client{name, make(chan string), ch, make(chan bool), conn}
+	client := &Client{name, ch, make(chan string), make(chan bool), conn}
 	if Add(client){
 		go ClientReader(client)
 		go ClientSender(client)
@@ -64,7 +64,7 @@ func ClientReader(client *Client){
 		}
 		client.snd <- client.name+"> "+strings.TrimSpace(string(buffer[:bytesRead]))
 	}
-	client.snd <- client.name + " has left chat"
+	client.quit <- true
 }
 
 
@@ -72,11 +72,11 @@ func ClientSender(client *Client) {
 	for {
 		select {
 		case buffer := <-client.rcv:
-			fmt.Println("sender", buffer)
 			client.conn.Write([]byte(buffer +"\n"))
 		case <-client.quit:
-			client.snd <- "Client " + client.name +  " quiting"
+			client.snd <- "Client " + client.name +  " has left chat."
 			client.conn.Close()
+			Remove(client)
 			break
 		}
 	}
@@ -89,13 +89,11 @@ Read input from channel and writes to standard output
 */
 func IOHandler(dataChan chan string){
 	for data := range dataChan{
-		fmt.Println(data)
-		//clientM.Lock()
+		clientM.Lock()
 		for _, client := range clients {
 			client.rcv <-data
-			fmt.Println("io", data)
 		}	
-		//clientM.Unlock()
+		clientM.Unlock()
 	}
 }
 
