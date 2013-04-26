@@ -10,5 +10,6 @@ Setting up:
 https://code.google.com/p/nogotovogo/source/browse/installgo.sh
 
 2) cd $GOPATH/src
-git clone https://github.com/disco-volante/goncurrency.git
+
+3) git clone https://github.com/disco-volante/goncurrency.git
 
