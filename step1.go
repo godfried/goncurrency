@@ -21,7 +21,7 @@ func main() {
 	show("main")
 	//launch a few goroutines
 	for i := 0; i < routines; i++ {
-		go show("routine "+strconv.Itoa(i), ch)
+		go show("routine "+strconv.Itoa(i))
 	}
 //	var input string
 //	fmt.Scanln(&input)
