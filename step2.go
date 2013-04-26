@@ -1,16 +1,20 @@
 
 package main
 
-import "fmt"
+import (
+"fmt"
+"strconv"
+)
 
 /*
  Print paramater a few times; allows us to see how routines interleave.
 */
-	func show(param string, ch chan bool) {
+func show(param string, ch chan bool) {
 	for i := 0; i < 3; i++ {
 		fmt.Println(param, ":", i)
 	}
 	if ch != nil{
+		//Tell receiver we are done
 		ch <- true
 	}
 }
@@ -18,16 +22,18 @@ import "fmt"
 	
 
 func main() {
+	routines := 5
 	ch := make(chan bool)
 	show("main", nil)
-	go show("routine A", ch)
-	go show("routine B", ch)
+	//launch a few goroutines
+	for i := 0; i < routines; i++ {
+		go show("routine "+strconv.Itoa(i), ch)
+	}
 	count := 0
-	for count < 2{
-		done := <- ch
-		if done{
-			count ++
-		}
+	//Wait unil all routines have completed
+	for count < routines - 1{
+		<- ch
+		count ++
 	}
 	fmt.Println("done")
 }
